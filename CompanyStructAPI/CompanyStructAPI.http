@@ -1,0 +1,6 @@
+@CompanyStructAPI_HostAddress = http://localhost:5165
+
+GET {{CompanyStructAPI_HostAddress}}/
+Accept: application/json
+
+###
