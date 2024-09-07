@@ -1,15 +1,15 @@
 ﻿using CompanyStructAPI.Contexts;
-using Microsoft.AspNetCore.Mvc.Filters;
 using CompanyStructAPI.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
 
-namespace CompanyStructAPI.Filters.CompanyFilters
+namespace CompanyStructAPI.Filters.ProjectFilters
 {
-    public class CompanyUpdateValidationFilter : ActionFilterAttribute
+    public class ProjectUpdateValidationFilter : ActionFilterAttribute
     {
         private readonly CompanyContext _context;
 
-        public CompanyUpdateValidationFilter(CompanyContext context)
+        public ProjectUpdateValidationFilter(CompanyContext context)
         {
             _context = context;
         }
@@ -17,10 +17,10 @@ namespace CompanyStructAPI.Filters.CompanyFilters
         public override void OnActionExecuting(ActionExecutingContext context)
         {
             base.OnActionExecuting(context);
-            var updatedCompany = context.ActionArguments["updatedCompany"] as Company;
-            if (updatedCompany == null)
+            var updatedProject = context.ActionArguments["updatedProject"] as Project;
+            if (updatedProject == null)
             {
-                context.ModelState.AddModelError("company", "Company is null.");
+                context.ModelState.AddModelError("project", "Project is null.");
                 var problemDetails = new ValidationProblemDetails(context.ModelState)
                 {
                     Status = StatusCodes.Status400BadRequest
@@ -29,18 +29,27 @@ namespace CompanyStructAPI.Filters.CompanyFilters
             }
             else
             {
-                if (!_context.EmployeeExists(updatedCompany.CeoID))
+                if (!_context.EmployeeExists(updatedProject.ManagerID))
                 {
-                    context.ModelState.AddModelError("company", $"Employee with id: {updatedCompany.CeoID} not found. Cannot update company.");
+                    context.ModelState.AddModelError("project", $"Employee with id: {updatedProject.ManagerID} not found. Cannot update project.");
                     var problemDetails = new ValidationProblemDetails(context.ModelState)
                     {
                         Status = StatusCodes.Status400BadRequest
                     };
                     context.Result = new BadRequestObjectResult(problemDetails);
                 }
-                if (updatedCompany.Name == null || updatedCompany.Code == null)
+                if (!_context.DivisionExists(updatedProject.DivisionID))
                 {
-                    context.ModelState.AddModelError("company", "Company is missing required fields.");
+                    context.ModelState.AddModelError("project", $"Division with id: {updatedProject.DivisionID} not found. Cannot update project.");
+                    var problemDetails = new ValidationProblemDetails(context.ModelState)
+                    {
+                        Status = StatusCodes.Status400BadRequest
+                    };
+                    context.Result = new BadRequestObjectResult(problemDetails);
+                }
+                if (updatedProject.Name == null || updatedProject.Code == null)
+                {
+                    context.ModelState.AddModelError("project", "Project is missing required fields.");
                     var problemDetails = new ValidationProblemDetails(context.ModelState)
                     {
                         Status = StatusCodes.Status400BadRequest
@@ -48,25 +57,25 @@ namespace CompanyStructAPI.Filters.CompanyFilters
                     context.Result = new BadRequestObjectResult(problemDetails);
                     return;
                 }
-                if (updatedCompany.Name.Length > 100 || updatedCompany.Code.Length > 100)
+                if (updatedProject.Name.Length > 100 || updatedProject.Code.Length > 100)
                 {
-                    context.ModelState.AddModelError("company", "Company fields are too long.");
+                    context.ModelState.AddModelError("project", "Project fields are too long.");
                     var problemDetails = new ValidationProblemDetails(context.ModelState)
                     {
                         Status = StatusCodes.Status400BadRequest
                     };
                     context.Result = new BadRequestObjectResult(problemDetails);
                 }
-                var company = _context.GetCompanyByParameters(updatedCompany.Name, updatedCompany.Code);
-                if (company != null && company.CeoID == updatedCompany.CeoID)
+                var project = _context.GetProjectByParameters(updatedProject.Name, updatedProject.Code);
+                if (project != null && project.DivisionID == updatedProject.DivisionID && project.ManagerID == updatedProject.ManagerID)
                 {
-                    context.ModelState.AddModelError("company", "Company with entered name, code and CeoID already exists.");
+                    context.ModelState.AddModelError("project", "Project with entered name, code, divisionID and managerID already exists.");
                     var problemDetails = new ValidationProblemDetails(context.ModelState)
                     {
                         Status = StatusCodes.Status400BadRequest
                     };
                     context.Result = new BadRequestObjectResult(problemDetails);
-                }                
+                }
             }
         }
     }

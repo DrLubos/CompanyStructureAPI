@@ -67,9 +67,9 @@ namespace CompanyStructAPI.Filters.DivisionFilters
                     context.Result = new BadRequestObjectResult(problemDetails);
                 }
                 var division = _context.GetDivisionByParameters(updatedDivision.Name, updatedDivision.Code);
-                if (division != null)
+                if (division != null && division.CompanyID == updatedDivision.CompanyID && division.DirectorID == updatedDivision.DirectorID)
                 {
-                    context.ModelState.AddModelError("division", "Division with entered name and code already exists.");
+                    context.ModelState.AddModelError("division", "Division with entered name, code, directorID and companyID already exists.");
                     var problemDetails = new ValidationProblemDetails(context.ModelState)
                     {
                         Status = StatusCodes.Status400BadRequest

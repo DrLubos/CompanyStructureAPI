@@ -1,16 +1,15 @@
 ﻿using CompanyStructAPI.Contexts;
 using Microsoft.AspNetCore.Mvc.Filters;
-using CompanyStructAPI.Models;
 using Microsoft.AspNetCore.Mvc;
+using CompanyStructAPI.Models;
 
-
-namespace CompanyStructAPI.Filters.DivisionFilters
+namespace CompanyStructAPI.Filters.ProjectFilters
 {
-    public class DivisionCreateValidationFilter : ActionFilterAttribute
+    public class ProjectCreateValidationFilter : ActionFilterAttribute
     {
         private readonly CompanyContext _context;
 
-        public DivisionCreateValidationFilter(CompanyContext context)
+        public ProjectCreateValidationFilter(CompanyContext context)
         {
             _context = context;
         }
@@ -18,32 +17,32 @@ namespace CompanyStructAPI.Filters.DivisionFilters
         public override void OnActionExecuting(ActionExecutingContext context)
         {
             base.OnActionExecuting(context);
-            if (context.ActionArguments.ContainsKey("division"))
+            if (context.ActionArguments.ContainsKey("project"))
             {
-                var division = context.ActionArguments["division"] as Division;
-                if (division != null)
+                var project = context.ActionArguments["project"] as Project;
+                if (project != null)
                 {
-                    if (!_context.EmployeeExists(division.DirectorID))
+                    if (!_context.EmployeeExists(project.ManagerID))
                     {
-                        context.ModelState.AddModelError("division", $"Employee with id: {division.DirectorID} not found. Cannot create division.");
+                        context.ModelState.AddModelError("project", $"Employee with id: {project.ManagerID} not found. Cannot create division.");
                         var problemDetails = new ValidationProblemDetails(context.ModelState)
                         {
                             Status = StatusCodes.Status400BadRequest
                         };
                         context.Result = new BadRequestObjectResult(problemDetails);
                     }
-                    if (!_context.CompanyExists(division.CompanyID))
+                    if (!_context.DivisionExists(project.DivisionID))
                     {
-                        context.ModelState.AddModelError("division", $"Company with id: {division.CompanyID} not found. Cannot create division.");
+                        context.ModelState.AddModelError("project", $"Division with id: {project.DivisionID} not found. Cannot create project.");
                         var problemDetails = new ValidationProblemDetails(context.ModelState)
                         {
                             Status = StatusCodes.Status400BadRequest
                         };
                         context.Result = new BadRequestObjectResult(problemDetails);
                     }
-                    if (division.Name == null || division.Code == null)
+                    if (project.Name == null || project.Code == null)
                     {
-                        context.ModelState.AddModelError("division", "Division is missing required fields.");
+                        context.ModelState.AddModelError("project", "Project is missing required fields.");
                         var problemDetails = new ValidationProblemDetails(context.ModelState)
                         {
                             Status = StatusCodes.Status400BadRequest
@@ -51,18 +50,18 @@ namespace CompanyStructAPI.Filters.DivisionFilters
                         context.Result = new BadRequestObjectResult(problemDetails);
                         return;
                     }
-                    if (division.Name.Length > 100 || division.Code.Length > 100)
+                    if (project.Name.Length > 100 || project.Code.Length > 100)
                     {
-                        context.ModelState.AddModelError("division", "Division fields are too long.");
+                        context.ModelState.AddModelError("project", "Project fields are too long.");
                         var problemDetails = new ValidationProblemDetails(context.ModelState)
                         {
                             Status = StatusCodes.Status400BadRequest
                         };
                         context.Result = new BadRequestObjectResult(problemDetails);
                     }
-                    if (_context.DivisionParametersExists(division.Name, division.Code))
+                    if (_context.ProjectParametersExists(project.Name, project.Code))
                     {
-                        context.ModelState.AddModelError("division", "Division already exists.");
+                        context.ModelState.AddModelError("project", "Project with this name and code already exists.");
                         var problemDetails = new ValidationProblemDetails(context.ModelState)
                         {
                             Status = StatusCodes.Status400BadRequest
@@ -70,7 +69,7 @@ namespace CompanyStructAPI.Filters.DivisionFilters
                         context.Result = new BadRequestObjectResult(problemDetails);
                     }
                 }
-            }        
+            }
         }
     }
 }
