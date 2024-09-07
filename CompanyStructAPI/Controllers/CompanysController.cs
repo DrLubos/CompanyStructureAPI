@@ -34,6 +34,10 @@ namespace CompanyStructAPI.Controllers
         [HttpPost]
         public ActionResult<Company> CreateCompany([FromBody] Company company)
         {
+            if (!EmployeeExists(company.CeoID))
+            {
+                return BadRequest($"Employee with id: {company.CeoID} not found. Cannot create company.");
+            }
             _context.Companies.Add(company);
             _context.SaveChanges();
             return CreatedAtAction(nameof(GetCompanyById), new { id = company.Id }, company);
@@ -52,6 +56,10 @@ namespace CompanyStructAPI.Controllers
                 };
                 return CreateCompany(newCompany);
             }
+            if (!EmployeeExists(updatedCompany.CeoID))
+            {
+                return BadRequest($"Employee with id: {updatedCompany.CeoID} not found. Cannot update company.");
+            }
             company.Name = updatedCompany.Name;
             company.Code = updatedCompany.Code;
             company.CeoID = updatedCompany.CeoID;
@@ -66,9 +74,19 @@ namespace CompanyStructAPI.Controllers
             {
                 return NotFound();
             }
+            if (_context.Divisions.Any(division => division.CompanyID == id))
+            {
+                return BadRequest("Cannot delete, company is referenced in Division");
+            }
             _context.Companies.Remove(company);
             _context.SaveChanges();
             return NoContent();
+        }
+
+        private bool EmployeeExists(int id)
+        {
+            Employee employee = _context.Employees.Find(id);
+            return employee != null;
         }
     }
 }

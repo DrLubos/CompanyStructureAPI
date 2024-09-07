@@ -68,6 +68,31 @@ namespace CompanyStructAPI.Controllers
             {
                 return NotFound();
             }
+            bool isReferenceInCompany = _context.Companies.Any(c => c.CeoID == id);
+            bool isReferenceInDivision = _context.Divisions.Any(d => d.DirectorID == id);
+            bool isReferenceInProject = _context.Projects.Any(p => p.ManagerID == id);
+            bool isReferenceInDepartment = _context.Departments.Any(d => d.ManagerID == id);
+            string errorMessage = "";
+            if (isReferenceInCompany)
+            {
+                errorMessage += "Cannot delete, employee is a CEO of a company.\n";
+            }
+            if (isReferenceInDivision)
+            {
+                errorMessage += "Cannot delete, employee is a director of a division.\n";
+            }
+            if (isReferenceInProject)
+            {
+                errorMessage += "Cannot delete, employee is a manager of a project.\n";
+            }
+            if (isReferenceInDepartment)
+            {
+                errorMessage += "Cannot delete, employee is a manager of a department.\n";
+            }
+            if (errorMessage != "")
+            {
+                return BadRequest(errorMessage.Trim());
+            }
             _context.Employees.Remove(employee);
             _context.SaveChanges();
             return NoContent();
