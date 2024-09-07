@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc;
 using CompanyStructAPI.Models;
 
-namespace CompanyStructAPI.Filters
+namespace CompanyStructAPI.Filters.EmployeeFilters
 {
     public class EmployeeUpdateValidationFilter : ActionFilterAttribute
     {
@@ -20,7 +20,7 @@ namespace CompanyStructAPI.Filters
             var updatedEmployee = context.ActionArguments["updatedEmployee"] as Employee;
             if (updatedEmployee == null)
             {
-                context.ModelState.AddModelError("Employee", "Employee is null.");
+                context.ModelState.AddModelError("employee", "Employee is null.");
                 var problemDetails = new ValidationProblemDetails(context.ModelState)
                 {
                     Status = StatusCodes.Status400BadRequest
@@ -29,10 +29,29 @@ namespace CompanyStructAPI.Filters
             }
             else
             {
+                if (updatedEmployee.FirstName == null || updatedEmployee.LastName == null || updatedEmployee.Phone == null || updatedEmployee.Email == null)
+                {
+                    context.ModelState.AddModelError("employee", "Employee is missing required fields.");
+                    var problemDetails = new ValidationProblemDetails(context.ModelState)
+                    {
+                        Status = StatusCodes.Status400BadRequest
+                    };
+                    context.Result = new BadRequestObjectResult(problemDetails);
+                    return;
+                }
+                if (updatedEmployee.FirstName.Length > 100 || updatedEmployee.LastName.Length > 100 || updatedEmployee.Phone.Length > 100 || updatedEmployee.Email.Length > 100)
+                {
+                    context.ModelState.AddModelError("employee", "Employee fields are too long.");
+                    var problemDetails = new ValidationProblemDetails(context.ModelState)
+                    {
+                        Status = StatusCodes.Status400BadRequest
+                    };
+                    context.Result = new BadRequestObjectResult(problemDetails);
+                }
                 var employee = _context.GetEmployeeByParameters(updatedEmployee.FirstName, updatedEmployee.LastName, updatedEmployee.Phone, updatedEmployee.Email);
                 if (employee != null)
                 {
-                    context.ModelState.AddModelError("Employee", "Employee with entered first name, last name, phone and email already exists.");
+                    context.ModelState.AddModelError("employee", "Employee with entered first name, last name, phone and email already exists.");
                     var problemDetails = new ValidationProblemDetails(context.ModelState)
                     {
                         Status = StatusCodes.Status400BadRequest

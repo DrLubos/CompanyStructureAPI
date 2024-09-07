@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 
-namespace CompanyStructAPI.Filters
+namespace CompanyStructAPI.Filters.EmployeeFilters
 {
     public class EmployeeIdValidationFilter : ActionFilterAttribute
     {
