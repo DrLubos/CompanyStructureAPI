@@ -35,6 +35,11 @@ namespace CompanyStructAPI.Contexts
             return Companies.Any(c => c.Id == id);
         }
 
+        public bool CompanyParametersExists(string name, string code)
+        {
+            return Companies.Any(c => c.Name == name && c.Code == code);
+        }
+
         public Company? GetCompanyByParameters(string name, string code)
         {
             return Companies.FirstOrDefault(c => c.Name == name && c.Code == code);
@@ -45,6 +50,11 @@ namespace CompanyStructAPI.Contexts
             return Divisions.Any(d => d.id == id);
         }
 
+        public bool DivisionParametersExists(string name, string code)
+        {
+            return Divisions.Any(d => d.Name == name && d.Code == code);
+        }
+
         public Division? GetDivisionByParameters(string name, string code)
         {
             return Divisions.FirstOrDefault(d => d.Name == name && d.Code == code);
@@ -52,6 +62,11 @@ namespace CompanyStructAPI.Contexts
 
         public bool ProjectExists(int id) {
             return Projects.Any(p => p.Id == id);
+        }
+
+        public bool ProjectParametersExists(string name, string code)
+        {
+            return Projects.Any(p => p.Name == name && p.Code == code);
         }
 
         public Project? GetProjectByParameters(string name, string code)
