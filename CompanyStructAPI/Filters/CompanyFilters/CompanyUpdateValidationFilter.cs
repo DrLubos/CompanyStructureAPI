@@ -5,11 +5,11 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace CompanyStructAPI.Filters.CompanyFilters
 {
-    public class CompanyUpdateValidation : ActionFilterAttribute
+    public class CompanyUpdateValidationFilter : ActionFilterAttribute
     {
         private readonly CompanyContext _context;
 
-        public CompanyUpdateValidation(CompanyContext context)
+        public CompanyUpdateValidationFilter(CompanyContext context)
         {
             _context = context;
         }
@@ -29,6 +29,15 @@ namespace CompanyStructAPI.Filters.CompanyFilters
             }
             else
             {
+                if (!_context.EmployeeExists(updatedCompany.CeoID))
+                {
+                    context.ModelState.AddModelError("company", $"Employee with id: {updatedCompany.CeoID} not found. Cannot update company.");
+                    var problemDetails = new ValidationProblemDetails(context.ModelState)
+                    {
+                        Status = StatusCodes.Status400BadRequest
+                    };
+                    context.Result = new BadRequestObjectResult(problemDetails);
+                }
                 if (updatedCompany.Name == null || updatedCompany.Code == null)
                 {
                     context.ModelState.AddModelError("company", "Company is missing required fields.");
@@ -57,16 +66,7 @@ namespace CompanyStructAPI.Filters.CompanyFilters
                         Status = StatusCodes.Status400BadRequest
                     };
                     context.Result = new BadRequestObjectResult(problemDetails);
-                }
-                if (!_context.EmployeeExists(updatedCompany.CeoID))
-                {
-                    context.ModelState.AddModelError("company", $"Employee with id: {updatedCompany.CeoID} not found. Cannot update company.");
-                    var problemDetails = new ValidationProblemDetails(context.ModelState)
-                    {
-                        Status = StatusCodes.Status400BadRequest
-                    };
-                    context.Result = new BadRequestObjectResult(problemDetails);
-                }
+                }                
             }
         }
     }

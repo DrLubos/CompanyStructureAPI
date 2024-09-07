@@ -18,14 +18,14 @@ namespace CompanyStructAPI.Controllers
         }
 
         [HttpGet]
-        public ActionResult<List<Company>> GetCompanies()
+        public IActionResult GetCompanies()
         {
             return Ok(_context.Companies.ToList());
         }
 
         [TypeFilter(typeof(CompanyIdValidationFilter))]
         [HttpGet("{id}")]
-        public ActionResult<Company> GetCompanyById(int id)
+        public IActionResult GetCompanyById(int id)
         {
             return Ok(_context.Companies.Find(id));
         }
@@ -40,7 +40,7 @@ namespace CompanyStructAPI.Controllers
         }
 
         [TypeFilter(typeof(CompanyIdValidationFilter))]
-        [TypeFilter(typeof(CompanyUpdateValidation))]
+        [TypeFilter(typeof(CompanyUpdateValidationFilter))]
         [HttpPut("{id}")]
         public IActionResult UpdateCompany(int id, [FromBody] Company updatedCompany)
         {
