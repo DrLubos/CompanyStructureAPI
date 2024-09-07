@@ -21,6 +21,7 @@ namespace CompanyStructAPI.Controllers
             var departments = _context.Departments.ToList();
             return Ok(departments);
         }
+
         [HttpGet("{id}")]
         public ActionResult GetDepartmentById(int id)
         {
@@ -31,17 +32,23 @@ namespace CompanyStructAPI.Controllers
             }
             return Ok(department);
         }
+
         [HttpPost]
         public ActionResult CreateDepartment([FromBody] Department department)
         {
-            if (!EmployeeExists(department.ManagerID))
+            if (!_context.EmployeeExists(department.ManagerID))
             {
                 return BadRequest($"Employee with id: {department.ManagerID} not found. Cannot create department.");
+            }
+            if (!_context.ProjectExists(department.ProjectID))
+            {
+                return BadRequest($"Project with id: {department.ProjectID} not found. Cannot create department.");
             }
             _context.Departments.Add(department);
             _context.SaveChanges();
             return CreatedAtAction(nameof(GetDepartmentById), new { id = department.Id }, department);
         }
+
         [HttpPut("{id}")]
         public ActionResult UpdateDepartment(int id, [FromBody] Department updatedDepartment)
         {
@@ -57,9 +64,13 @@ namespace CompanyStructAPI.Controllers
                 };
                 return CreateDepartment(newDepartment);
             }
-            if (!EmployeeExists(updatedDepartment.ManagerID))
+            if (!_context.EmployeeExists(updatedDepartment.ManagerID))
             {
                 return BadRequest($"Employee with id: {updatedDepartment.ManagerID} not found. Cannot update department.");
+            }
+            if (!_context.ProjectExists(updatedDepartment.ProjectID))
+            {
+                return BadRequest($"Project with id: {updatedDepartment.ProjectID} not found. Cannot update department.");
             }
             department.Name = updatedDepartment.Name;
             department.Code = updatedDepartment.Code;
@@ -68,6 +79,7 @@ namespace CompanyStructAPI.Controllers
             _context.SaveChanges();
             return Ok(department);
         }
+
         [HttpDelete("{id}")]
         public ActionResult DeleteDepartment(int id)
         {
@@ -79,12 +91,6 @@ namespace CompanyStructAPI.Controllers
             _context.Departments.Remove(department);
             _context.SaveChanges();
             return Ok();
-        }
-
-        private bool EmployeeExists(int id)
-        {
-            Employee employee = _context.Employees.Find(id);
-            return employee != null;
         }
     }
 }

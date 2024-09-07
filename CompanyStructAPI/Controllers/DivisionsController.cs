@@ -22,6 +22,7 @@ namespace CompanyStructAPI.Controllers
             var divisions = _context.Divisions.ToList();
             return Ok(divisions);
         }
+
         [HttpGet("{id}")]
         public ActionResult<Division> GetDivisionById(int id)
         {
@@ -32,17 +33,23 @@ namespace CompanyStructAPI.Controllers
             }
             return Ok(division);
         }
+
         [HttpPost]
         public ActionResult<Division> CreateDivision([FromBody] Division division)
         {
-            if (!EmployeeExists(division.DirectorID))
+            if (!_context.EmployeeExists(division.DirectorID))
             {
                 return BadRequest($"Employee with id: {division.DirectorID} not found. Cannot create division.");
+            }
+            if (!_context.CompanyExists(division.CompanyID))
+            {
+                return BadRequest($"Company with id: {division.CompanyID} not found. Cannot create division.");
             }
             _context.Divisions.Add(division);
             _context.SaveChanges();
             return CreatedAtAction(nameof(GetDivisionById), new { id = division.id }, division);
         }
+
         [HttpPut("{id}")]
         public ActionResult<Division> UpdateDivision(int id, [FromBody] Division updatedDivision)
         {
@@ -58,9 +65,13 @@ namespace CompanyStructAPI.Controllers
                 };
                 return CreateDivision(newDivision);
             }
-            if (!EmployeeExists(updatedDivision.DirectorID))
+            if (!_context.EmployeeExists(updatedDivision.DirectorID))
             {
                 return BadRequest($"Employee with id: {updatedDivision.DirectorID} not found. Cannot update division.");
+            }
+            if (!_context.CompanyExists(updatedDivision.CompanyID))
+            {
+                return BadRequest($"Company with id: {updatedDivision.CompanyID} not found. Cannot update division.");
             }
             division.Name = updatedDivision.Name;
             division.Code = updatedDivision.Code;
@@ -69,6 +80,7 @@ namespace CompanyStructAPI.Controllers
             _context.SaveChanges();
             return Ok(division);
         }
+
         [HttpDelete("{id}")]
         public ActionResult<Division> DeleteDivision(int id)
         {
@@ -79,17 +91,11 @@ namespace CompanyStructAPI.Controllers
             }
             if (_context.Projects.Any(project => project.DivisionID == id))
             {
-                return BadRequest("Division is referenced in a project");
+                return BadRequest("Division is referenced in a project. Cannot delete division.");
             }
             _context.Divisions.Remove(division);
             _context.SaveChanges();
             return Ok(division);
-        }
-
-        private bool EmployeeExists(int id)
-        {
-            Employee employee = _context.Employees.Find(id);
-            return employee != null;
         }
     }
 }

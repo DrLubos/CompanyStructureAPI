@@ -21,6 +21,8 @@ namespace CompanyStructAPI.Controllers
             var companies = _context.Companies.ToList();
             return Ok(companies);
         }
+
+
         [HttpGet("{id}")]
         public ActionResult<Company> GetCompanyById(int id)
         {
@@ -31,8 +33,9 @@ namespace CompanyStructAPI.Controllers
             }
             return Ok(company);
         }
+
         [HttpPost]
-        public ActionResult<Company> CreateCompany([FromBody] Company company)
+        public IActionResult CreateCompany([FromBody] Company company)
         {
             if (!EmployeeExists(company.CeoID))
             {
@@ -42,8 +45,9 @@ namespace CompanyStructAPI.Controllers
             _context.SaveChanges();
             return CreatedAtAction(nameof(GetCompanyById), new { id = company.Id }, company);
         }
+
         [HttpPut("{id}")]
-        public ActionResult<Company> UpdateCompany(int id, [FromBody] Company updatedCompany)
+        public IActionResult UpdateCompany(int id, [FromBody] Company updatedCompany)
         {
             var company = _context.Companies.Find(id);
             if (company == null)
@@ -66,8 +70,9 @@ namespace CompanyStructAPI.Controllers
             _context.SaveChanges();
             return Ok(company);
         }
+
         [HttpDelete("{id}")]
-        public ActionResult DeleteCompany(int id)
+        public IActionResult DeleteCompany(int id)
         {
             var company = _context.Companies.Find(id);
             if (company == null)

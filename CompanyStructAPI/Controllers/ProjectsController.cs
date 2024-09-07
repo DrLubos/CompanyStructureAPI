@@ -22,6 +22,7 @@ namespace CompanyStructAPI.Controllers
             var projects = _context.Projects.ToList();
             return Ok(projects);
         }
+
         [HttpGet("{id}")]
         public ActionResult GetProjectById(int id)
         {
@@ -32,17 +33,23 @@ namespace CompanyStructAPI.Controllers
             }
             return Ok(project);
         }
+
         [HttpPost]
         public ActionResult CreateProject([FromBody] Project project)
         {
-            if (!EmployeeExists(project.ManagerID))
+            if (!_context.EmployeeExists(project.ManagerID))
             {
                 return BadRequest($"Employee with id: {project.ManagerID} not found. Cannot create project.");
+            }
+            if (!_context.DivisionExists(project.DivisionID))
+            {
+                return BadRequest($"Division with id: {project.DivisionID} not found. Cannot create project.");
             }
             _context.Projects.Add(project);
             _context.SaveChanges();
             return CreatedAtAction(nameof(GetProjectById), new { id = project.Id }, project);
         }
+
         [HttpPut("{id}")]
         public ActionResult UpdateProject(int id, [FromBody] Project updatedProject)
         {
@@ -58,9 +65,13 @@ namespace CompanyStructAPI.Controllers
                 };
                 return CreateProject(newProject);
             }
-            if (!EmployeeExists(updatedProject.ManagerID))
+            if (!_context.EmployeeExists(updatedProject.ManagerID))
             {
                 return BadRequest($"Employee with id: {updatedProject.ManagerID} not found. Cannot update project.");
+            }
+            if (!_context.DivisionExists(updatedProject.DivisionID))
+            {
+                return BadRequest($"Division with id: {updatedProject.DivisionID} not found. Cannot update project.");
             }
             project.Name = updatedProject.Name;
             project.Code = updatedProject.Code;
@@ -69,6 +80,7 @@ namespace CompanyStructAPI.Controllers
             _context.SaveChanges();
             return Ok(project);
         }
+
         [HttpDelete("{id}")]
         public ActionResult DeleteProject(int id)
         {
@@ -84,12 +96,6 @@ namespace CompanyStructAPI.Controllers
             _context.Projects.Remove(project);
             _context.SaveChanges();
             return Ok();
-        }
-
-        private bool EmployeeExists(int id)
-        {
-            Employee employee = _context.Employees.Find(id);
-            return employee != null;
         }
     }
 }

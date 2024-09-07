@@ -14,5 +14,49 @@ namespace CompanyStructAPI.Contexts
         public DbSet<Division> Divisions { get; set; }
         public DbSet<Project> Projects { get; set; }
         public DbSet<Department> Departments { get; set; }
+
+        public bool EmployeeExists(int id)
+        {
+            return Employees.Any(e => e.Id == id);
+        }
+
+        public bool EmployeeParametersExists(string firstName, string lastName, string phone, string email)
+        {
+            return Employees.Any(e => e.FirstName == firstName && e.LastName == lastName && e.Phone == phone && e.Email == email);
+        }
+
+        public Employee? GetEmployeeByParameters(string firstName, string lastName, string phone, string email)
+        {
+            return Employees.FirstOrDefault(e => e.FirstName == firstName && e.LastName == lastName && e.Phone == phone && e.Email == email);
+        }
+
+        public bool CompanyExists(int id)
+        {
+            return Companies.Any(c => c.Id == id);
+        }
+
+        public Company? GetCompanyByParameters(string name, string code)
+        {
+            return Companies.FirstOrDefault(c => c.Name == name && c.Code == code);
+        }
+
+        public bool DivisionExists(int id)
+        {
+            return Divisions.Any(d => d.id == id);
+        }
+
+        public Division? GetDivisionByParameters(string name, string code)
+        {
+            return Divisions.FirstOrDefault(d => d.Name == name && d.Code == code);
+        }
+
+        public bool ProjectExists(int id) {
+            return Projects.Any(p => p.Id == id);
+        }
+
+        public Project? GetProjectByParameters(string name, string code)
+        {
+            return Projects.FirstOrDefault(p => p.Name == name && p.Code == code);
+        }
     }
 }

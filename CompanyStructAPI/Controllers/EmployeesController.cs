@@ -1,4 +1,5 @@
 ﻿using CompanyStructAPI.Contexts;
+using CompanyStructAPI.Filters;
 using CompanyStructAPI.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,43 +17,34 @@ namespace CompanyStructAPI.Controllers
         }
 
         [HttpGet]
-        public ActionResult<List<Employee>> GetEmployees()
+        public IActionResult GetEmployees()
         {
             var employees = _context.Employees.ToList();
             return Ok(employees);
         }
+
+        [TypeFilter(typeof(EmployeeIdValidationFilter))]
         [HttpGet("{id}")]
-        public ActionResult<Employee> GetEmployeeById(int id)
+        public IActionResult GetEmployeeById(int id)
         {
-            var employee = _context.Employees.Find(id);
-            if (employee == null)
-            {
-                return NotFound();
-            }
-            return Ok(employee);
+            return Ok(_context.Employees.Find(id));
         }
+
+        [TypeFilter(typeof(EmployeeCreateValidationFilter))]
         [HttpPost]
-        public ActionResult<Employee> CreateEmployee([FromBody] Employee employee)
+        public IActionResult CreateEmployee([FromBody] Employee employee)
         {
             _context.Employees.Add(employee);
             _context.SaveChanges();
             return CreatedAtAction(nameof(GetEmployeeById), new { id = employee.Id }, employee);
         }
+
+        [TypeFilter(typeof(EmployeeIdValidationFilter))]
+        [TypeFilter(typeof(EmployeeUpdateValidationFilter))]
         [HttpPut("{id}")]
-        public ActionResult<Employee> UpdateEmployee(int id, [FromBody] Employee updatedEmployee)
+        public IActionResult UpdateEmployee(int id, [FromBody] Employee updatedEmployee)
         {
-            var employee = _context.Employees.Find(id);
-            if (employee == null)
-            {
-                Employee newEmployee = new Employee
-                {
-                    FirstName = updatedEmployee.FirstName,
-                    LastName = updatedEmployee.LastName,
-                    Phone = updatedEmployee.Phone,
-                    Email = updatedEmployee.Email
-                };
-                return CreateEmployee(newEmployee);
-            }
+            var employee = _context.Employees.Find(id);    
             employee.FirstName = updatedEmployee.FirstName;
             employee.LastName = updatedEmployee.LastName;
             employee.Phone = updatedEmployee.Phone;
@@ -60,14 +52,12 @@ namespace CompanyStructAPI.Controllers
             _context.SaveChanges();
             return Ok(employee);
         }
+
+        [TypeFilter(typeof(EmployeeIdValidationFilter))]
         [HttpDelete("{id}")]
-        public ActionResult DeleteEmployee(int id)
+        public IActionResult DeleteEmployee(int id)
         {
             var employee = _context.Employees.Find(id);
-            if (employee == null)
-            {
-                return NotFound();
-            }
             bool isReferenceInCompany = _context.Companies.Any(c => c.CeoID == id);
             bool isReferenceInDivision = _context.Divisions.Any(d => d.DirectorID == id);
             bool isReferenceInProject = _context.Projects.Any(p => p.ManagerID == id);
@@ -75,23 +65,29 @@ namespace CompanyStructAPI.Controllers
             string errorMessage = "";
             if (isReferenceInCompany)
             {
-                errorMessage += "Cannot delete, employee is a CEO of a company.\n";
+                errorMessage += "Cannot delete, employee is a CEO of a company.";
             }
             if (isReferenceInDivision)
             {
-                errorMessage += "Cannot delete, employee is a director of a division.\n";
+                errorMessage += "Cannot delete, employee is a director of a division.";
             }
             if (isReferenceInProject)
             {
-                errorMessage += "Cannot delete, employee is a manager of a project.\n";
+                errorMessage += "Cannot delete, employee is a manager of a project.";
             }
             if (isReferenceInDepartment)
             {
-                errorMessage += "Cannot delete, employee is a manager of a department.\n";
+                errorMessage += "Cannot delete, employee is a manager of a department.";
             }
             if (errorMessage != "")
             {
-                return BadRequest(errorMessage.Trim());
+                ModelState.AddModelError("employee", errorMessage);
+                var problemDetails = new ValidationProblemDetails(ModelState)
+                {
+                    Status = StatusCodes.Status400BadRequest
+                };
+                var result = new BadRequestObjectResult(problemDetails);
+                return result;
             }
             _context.Employees.Remove(employee);
             _context.SaveChanges();
