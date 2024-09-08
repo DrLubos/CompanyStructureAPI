@@ -66,4 +66,34 @@ Each table in the database has corresponding API endpoints:
   - To access department with ID 1:  
     `https://localhost:7080/departments/1`.
 
-Each entity can be managed via standard HTTP methods (GET, POST, PUT, DELETE), and the specific entity is accessed via its unique ID in the URL.
+### Search Functionality
+
+Each table supports searching through query parameters. The `/search` endpoint allows filtering based on various fields. Query parameters are optional, and multiple fields can be used for filtering:
+
+- **Employees Search**:  
+  - Endpoint: `https://localhost:7080/employees/search`
+  - Example query: `https://localhost:7080/employees/search?firstName=John&lastName=Doe&email=john@email.com`
+  - Search parameters include: `id`, `title`, `firstName`, `lastName`, `email`, `phone`.
+
+- **Companies Search**:  
+  - Endpoint: `https://localhost:7080/companies/search`
+  - Example query: `https://localhost:7080/companies/search?name=TechCorp&code=TC01`
+  - Search parameters include: `id`, `name`, `code`, `ceoId`.
+
+- **Divisions Search**:  
+  - Endpoint: `https://localhost:7080/divisions/search`
+  - Example query: `https://localhost:7080/divisions/search?name=HR&companyId=1`
+  - Search parameters include: `id`, `name`, `code`, `companyId`, `directorId`.
+
+- **Projects Search**:  
+  - Endpoint: `https://localhost:7080/projects/search`
+  - Example query: `https://localhost:7080/projects/search?name=ProjectX&managerId=1`
+  - Search parameters include: `id`, `name`, `code`, `divisionId`, `managerId`.
+
+- **Departments Search**:  
+  - Endpoint: `https://localhost:7080/departments/search`
+  - Example query: `https://localhost:7080/departments/search?name=Accounting&projectId=1`
+  - Search parameters include: `id`, `name`, `code`, `projectId`, `managerId`.
+
+Search functionality is available for `GET`, `PUT`, and `DELETE` requests, allowing flexible and comprehensive querying of the data.
+
