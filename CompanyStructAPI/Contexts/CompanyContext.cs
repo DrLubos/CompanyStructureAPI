@@ -73,5 +73,20 @@ namespace CompanyStructAPI.Contexts
         {
             return Projects.FirstOrDefault(p => p.Name == name && p.Code == code);
         }
+
+        public bool DepartmentExists(int id)
+        {
+            return Departments.Any(d => d.Id == id);
+        }
+
+        public bool DepartmentParametersExists(string name, string code)
+        {
+            return Departments.Any(d => d.Name == name && d.Code == code);
+        }
+
+        public Department? GetDepartmentByParameters(string name, string code)
+        {
+            return Departments.FirstOrDefault(d => d.Name == name && d.Code == code);
+        }
     }
 }

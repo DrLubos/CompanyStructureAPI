@@ -1,4 +1,6 @@
 ﻿using CompanyStructAPI.Contexts;
+using CompanyStructAPI.Filters.DepartmentFilters;
+using CompanyStructAPI.Filters.DivisionFilters;
 using CompanyStructAPI.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,60 +20,31 @@ namespace CompanyStructAPI.Controllers
         [HttpGet]
         public ActionResult GetDepartments()
         {
-            var departments = _context.Departments.ToList();
-            return Ok(departments);
+            return Ok(_context.Departments.ToList());
         }
 
+        [TypeFilter(typeof(DepartmentIdValidationFilter))]
         [HttpGet("{id}")]
         public ActionResult GetDepartmentById(int id)
         {
-            var department = _context.Departments.Find(id);
-            if (department == null)
-            {
-                return NotFound();
-            }
-            return Ok(department);
+            return Ok(_context.Departments.Find(id));
         }
 
+        [TypeFilter(typeof(DepartmentCreateValidationFilter))]
         [HttpPost]
         public ActionResult CreateDepartment([FromBody] Department department)
         {
-            if (!_context.EmployeeExists(department.ManagerID))
-            {
-                return BadRequest($"Employee with id: {department.ManagerID} not found. Cannot create department.");
-            }
-            if (!_context.ProjectExists(department.ProjectID))
-            {
-                return BadRequest($"Project with id: {department.ProjectID} not found. Cannot create department.");
-            }
             _context.Departments.Add(department);
             _context.SaveChanges();
             return CreatedAtAction(nameof(GetDepartmentById), new { id = department.Id }, department);
         }
 
+        [TypeFilter(typeof(DepartmentIdValidationFilter))]
+        [TypeFilter(typeof(DepartmentUpdateValidationFilter))]
         [HttpPut("{id}")]
         public ActionResult UpdateDepartment(int id, [FromBody] Department updatedDepartment)
         {
             var department = _context.Departments.Find(id);
-            if (department == null)
-            {
-                Department newDepartment = new Department
-                {
-                    Name = updatedDepartment.Name,
-                    Code = updatedDepartment.Code,
-                    ProjectID = updatedDepartment.ProjectID,
-                    ManagerID = updatedDepartment.ManagerID
-                };
-                return CreateDepartment(newDepartment);
-            }
-            if (!_context.EmployeeExists(updatedDepartment.ManagerID))
-            {
-                return BadRequest($"Employee with id: {updatedDepartment.ManagerID} not found. Cannot update department.");
-            }
-            if (!_context.ProjectExists(updatedDepartment.ProjectID))
-            {
-                return BadRequest($"Project with id: {updatedDepartment.ProjectID} not found. Cannot update department.");
-            }
             department.Name = updatedDepartment.Name;
             department.Code = updatedDepartment.Code;
             department.ProjectID = updatedDepartment.ProjectID;
@@ -80,14 +53,11 @@ namespace CompanyStructAPI.Controllers
             return Ok(department);
         }
 
+        [TypeFilter(typeof(DepartmentIdValidationFilter))]
         [HttpDelete("{id}")]
         public ActionResult DeleteDepartment(int id)
         {
             var department = _context.Departments.Find(id);
-            if (department == null)
-            {
-                return NotFound();
-            }
             _context.Departments.Remove(department);
             _context.SaveChanges();
             return Ok();

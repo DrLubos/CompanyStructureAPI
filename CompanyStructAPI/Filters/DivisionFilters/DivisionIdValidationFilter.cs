@@ -35,7 +35,7 @@ namespace CompanyStructAPI.Filters.DivisionFilters
                         context.ModelState.AddModelError("id", "Division ID does not exist.");
                         var problemDetails = new ValidationProblemDetails(context.ModelState)
                         {
-                            Status = StatusCodes.Status400BadRequest
+                            Status = StatusCodes.Status404NotFound
                         };
                         context.Result = new BadRequestObjectResult(problemDetails);
                     }

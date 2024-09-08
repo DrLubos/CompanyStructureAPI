@@ -1,14 +1,14 @@
-﻿using CompanyStructAPI.Contexts;
-using Microsoft.AspNetCore.Mvc.Filters;
+﻿using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc;
+using CompanyStructAPI.Contexts;
 
-namespace CompanyStructAPI.Filters.ProjectFilters
+namespace CompanyStructAPI.Filters.DepartmentFilters
 {
-    public class ProjectIdValidationFilter : ActionFilterAttribute
+    public class DepartmentIdValidationFilter : ActionFilterAttribute
     {
         private readonly CompanyContext _context;
 
-        public ProjectIdValidationFilter(CompanyContext context)
+        public DepartmentIdValidationFilter(CompanyContext context)
         {
             _context = context;
         }
@@ -18,21 +18,21 @@ namespace CompanyStructAPI.Filters.ProjectFilters
             base.OnActionExecuting(context);
             if (context.ActionArguments.ContainsKey("id"))
             {
-                var projectId = context.ActionArguments["id"] as int?;
-                if (projectId != null && projectId.HasValue)
+                var departmentId = context.ActionArguments["id"] as int?;
+                if (departmentId != null && departmentId.HasValue)
                 {
-                    if (projectId.Value < 0)
+                    if (departmentId.Value < 0)
                     {
-                        context.ModelState.AddModelError("id", "Project ID is invalid.");
+                        context.ModelState.AddModelError("id", "Department ID is invalid.");
                         var problemDetails = new ValidationProblemDetails(context.ModelState)
                         {
                             Status = StatusCodes.Status400BadRequest
                         };
                         context.Result = new BadRequestObjectResult(problemDetails);
                     }
-                    else if (!_context.ProjectExists(projectId.Value))
+                    else if (!_context.DepartmentExists(departmentId.Value))
                     {
-                        context.ModelState.AddModelError("id", "Project ID does not exist.");
+                        context.ModelState.AddModelError("id", "Department ID does not exist.");
                         var problemDetails = new ValidationProblemDetails(context.ModelState)
                         {
                             Status = StatusCodes.Status404NotFound

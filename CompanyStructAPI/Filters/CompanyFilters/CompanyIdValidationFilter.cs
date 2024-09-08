@@ -35,7 +35,7 @@ namespace CompanyStructAPI.Filters.CompanyFilters
                         context.ModelState.AddModelError("id", "Company ID does not exist.");
                         var problemDetails = new ValidationProblemDetails(context.ModelState)
                         {
-                            Status = StatusCodes.Status400BadRequest
+                            Status = StatusCodes.Status404NotFound
                         };
                         context.Result = new BadRequestObjectResult(problemDetails);
                     }
