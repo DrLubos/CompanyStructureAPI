@@ -76,7 +76,7 @@ namespace CompanyStructAPI.Controllers
         [HttpPut("{id}")]
         public IActionResult UpdateEmployee(int id, [FromBody] Employee updatedEmployee)
         {
-            var employee = _context.Employees.Find(id);    
+            var employee = _context.Employees.Find(id);
             employee.FirstName = updatedEmployee.FirstName;
             employee.LastName = updatedEmployee.LastName;
             employee.Phone = updatedEmployee.Phone;
@@ -85,6 +85,7 @@ namespace CompanyStructAPI.Controllers
             return Ok(employee);
         }
 
+        [TypeFilter(typeof(EmployeeUpdateValidationFilter))]
         [HttpPut("search")]
         public IActionResult SearchAndUpdate([FromQuery] int? id, [FromQuery] string? title, [FromQuery] string? firstname, [FromQuery] string? lastname, [FromQuery] string? phone, [FromQuery] string? email, [FromBody] Employee updatedEmployee)
         {
@@ -144,6 +145,38 @@ namespace CompanyStructAPI.Controllers
             _context.Employees.Remove(employee);
             _context.SaveChanges();
             return NoContent();
+        }
+
+        [TypeFilter(typeof(EmployeeSearchAndDeleteValidationFilter))]
+        [HttpDelete("search")]
+        public IActionResult SearchAndDelete([FromQuery] int? id, [FromQuery] string? title, [FromQuery] string? firstname, [FromQuery] string? lastname, [FromQuery] string? phone, [FromQuery] string? email)
+        {
+            var employees = _context.Employees.AsQueryable();
+            if (id != null)
+            {
+                employees = employees.Where(e => e.Id == id);
+            }
+            if (!string.IsNullOrEmpty(title))
+            {
+                employees = employees.Where(e => e.Title == title);
+            }
+            if (!string.IsNullOrEmpty(firstname))
+            {
+                employees = employees.Where(e => e.FirstName.StartsWith(firstname));
+            }
+            if (!string.IsNullOrEmpty(lastname))
+            {
+                employees = employees.Where(e => e.LastName.StartsWith(lastname));
+            }
+            if (!string.IsNullOrEmpty(phone))
+            {
+                employees = employees.Where(e => e.Phone.StartsWith(phone));
+            }
+            if (!string.IsNullOrEmpty(email))
+            {
+                employees = employees.Where(e => e.Email.StartsWith(email));
+            }
+            return DeleteEmployee(employees.First().Id);
         }
     }
 }
