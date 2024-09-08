@@ -2,6 +2,7 @@
 using CompanyStructAPI.Filters.EmployeeFilters;
 using CompanyStructAPI.Models;
 using Microsoft.AspNetCore.Mvc;
+using System.Linq;
 
 namespace CompanyStructAPI.Controllers
 {
@@ -30,6 +31,37 @@ namespace CompanyStructAPI.Controllers
             return Ok(_context.Employees.Find(id));
         }
 
+        [HttpGet("search")]
+        public IActionResult GetEmployees([FromQuery] int? id, [FromQuery] string? title, [FromQuery] string? firstname, [FromQuery] string? lastname, [FromQuery] string? phone, [FromQuery] string? email)
+        {
+            var employees = _context.Employees.AsQueryable();
+            if (id != null)
+            {
+                employees = employees.Where(e => e.Id == id);
+            }
+            if (!string.IsNullOrEmpty(title))
+            {
+                employees = employees.Where(e => e.Title == title);
+            }
+            if (!string.IsNullOrEmpty(firstname))
+            {
+                employees = employees.Where(e => e.FirstName.StartsWith(firstname));
+            }
+            if (!string.IsNullOrEmpty(lastname))
+            {
+                employees = employees.Where(e => e.LastName.StartsWith(lastname));
+            }
+            if (!string.IsNullOrEmpty(phone))
+            {
+                employees = employees.Where(e => e.Phone.StartsWith(phone));
+            }
+            if (!string.IsNullOrEmpty(email))
+            {
+                employees = employees.Where(e => e.Email.StartsWith(email));
+            }
+            return Ok(employees.ToList());
+        }
+
         [TypeFilter(typeof(EmployeeCreateValidationFilter))]
         [HttpPost]
         public IActionResult CreateEmployee([FromBody] Employee employee)
@@ -51,6 +83,56 @@ namespace CompanyStructAPI.Controllers
             employee.Email = updatedEmployee.Email;
             _context.SaveChanges();
             return Ok(employee);
+        }
+
+        [HttpPut("search")]
+        public IActionResult SearchAndUpdate([FromQuery] int? id, [FromQuery] string? title, [FromQuery] string? firstname, [FromQuery] string? lastname, [FromQuery] string? phone, [FromQuery] string? email, [FromBody] Employee updatedEmployee)
+        {
+            var employees = _context.Employees.AsQueryable();
+            if (id != null)
+            {
+                employees = employees.Where(e => e.Id == id);
+            }
+            if (!string.IsNullOrEmpty(title))
+            {
+                employees = employees.Where(e => e.Title == title);
+            }
+            if (!string.IsNullOrEmpty(firstname))
+            {
+                employees = employees.Where(e => e.FirstName.StartsWith(firstname));
+            }
+            if (!string.IsNullOrEmpty(lastname))
+            {
+                employees = employees.Where(e => e.LastName.StartsWith(lastname));
+            }
+            if (!string.IsNullOrEmpty(phone))
+            {
+                employees = employees.Where(e => e.Phone.StartsWith(phone));
+            }
+            if (!string.IsNullOrEmpty(email))
+            {
+                employees = employees.Where(e => e.Email.StartsWith(email));
+            }
+            var employeeList = employees.ToList();
+            if (employeeList.Count > 1)
+            {
+                ModelState.AddModelError("employee", "Multiple employees found. Please provide more specific search criteria.");
+                var problemDetails = new ValidationProblemDetails(ModelState)
+                {
+                    Status = StatusCodes.Status400BadRequest
+                };
+                return new BadRequestObjectResult(problemDetails);
+            }
+            if (employeeList.Count == 0)
+            {
+                ModelState.AddModelError("employee", "Employee not found.");
+                var problemDetails = new ValidationProblemDetails(ModelState)
+                {
+                    Status = StatusCodes.Status404NotFound
+                };
+                return new NotFoundObjectResult(problemDetails);
+            }
+            return UpdateEmployee(employeeList.First().Id, updatedEmployee);
         }
 
         [TypeFilter(typeof(EmployeeIdValidationFilter))]
