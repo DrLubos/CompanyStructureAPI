@@ -31,13 +31,40 @@ namespace CompanyStructAPI.Controllers
             return Ok(_context.Divisions.Find(id));
         }
 
+        [HttpGet("search")]
+        public IActionResult GetDivisions([FromQuery] int? id, [FromQuery] string? name, [FromQuery] string? code, [FromQuery] int? companyID, [FromQuery] int? directorID)
+        {
+            var divisions = _context.Divisions.AsQueryable();
+            if (id != null)
+            {
+                divisions = divisions.Where(d => d.Id == id);
+            }
+            if (!string.IsNullOrEmpty(name))
+            {
+                divisions = divisions.Where(d => d.Name.StartsWith(name));
+            }
+            if (!string.IsNullOrEmpty(code))
+            {
+                divisions = divisions.Where(d => d.Code.StartsWith(code));
+            }
+            if (companyID != null)
+            {
+                divisions = divisions.Where(d => d.CompanyID == companyID);
+            }
+            if (directorID != null)
+            {
+                divisions = divisions.Where(d => d.DirectorID == directorID);
+            }
+            return Ok(divisions.ToList());
+        }
+
         [TypeFilter(typeof(DivisionCreateValidationFilter))]
         [HttpPost]
         public IActionResult CreateDivision([FromBody] Division division)
         {
             _context.Divisions.Add(division);
             _context.SaveChanges();
-            return CreatedAtAction(nameof(GetDivisionById), new { id = division.id }, division);
+            return CreatedAtAction(nameof(GetDivisionById), new { id = division.Id }, division);
         }
 
         [TypeFilter(typeof(DivisionIdValidationFilter))]
@@ -54,6 +81,53 @@ namespace CompanyStructAPI.Controllers
             return Ok(division);
         }
 
+        [TypeFilter(typeof(DivisionUpdateValidationFilter))]
+        [HttpPut("search")]
+        public IActionResult SearchAndUpdateDivision([FromQuery] int? id, [FromQuery] string? name, [FromQuery] string? code, [FromQuery] int? companyID, [FromQuery] int? directorID, [FromBody] Division updatedDivision)
+        {
+            var divisions = _context.Divisions.AsQueryable();
+            if (id != null)
+            {
+                divisions = divisions.Where(d => d.Id == id);
+            }
+            if (!string.IsNullOrEmpty(name))
+            {
+                divisions = divisions.Where(d => d.Name.StartsWith(name));
+            }
+            if (!string.IsNullOrEmpty(code))
+            {
+                divisions = divisions.Where(d => d.Code.StartsWith(code));
+            }
+            if (companyID != null)
+            {
+                divisions = divisions.Where(d => d.CompanyID == companyID);
+            }
+            if (directorID != null)
+            {
+                divisions = divisions.Where(d => d.DirectorID == directorID);
+            }
+            var divisionList = divisions.ToList();
+            if (divisionList.Count > 1)
+            {
+                ModelState.AddModelError("division", "Multiple divisions found, please specify the search criteria");
+                var problemDetails = new ValidationProblemDetails(ModelState)
+                {
+                    Status = StatusCodes.Status400BadRequest
+                };
+                return new BadRequestObjectResult(problemDetails);
+            }
+            if (divisionList.Count == 0)
+            {
+                ModelState.AddModelError("division", "Division not found.");
+                var problemDetails = new ValidationProblemDetails(ModelState)
+                {
+                    Status = StatusCodes.Status404NotFound
+                };
+                return new BadRequestObjectResult(problemDetails);
+            }
+            return UpdateDivision(divisionList.First().Id, updatedDivision);
+        }
+
         [TypeFilter(typeof(DivisionIdValidationFilter))]
         [TypeFilter(typeof(DivisionDeleteValidationFilter))]
         [HttpDelete("{id}")]
@@ -63,6 +137,35 @@ namespace CompanyStructAPI.Controllers
             _context.Divisions.Remove(division);
             _context.SaveChanges();
             return Ok(division);
+        }
+
+        [TypeFilter(typeof(DivisionSearchDeleteValidationFilter))]
+        [HttpDelete("search")]
+        public IActionResult SearchAndDeleteDivision([FromQuery] int? id, [FromQuery] string? name, [FromQuery] string? code, [FromQuery] int? companyID, [FromQuery] int? directorID)
+        {
+            var divisions = _context.Divisions.AsQueryable();
+            if (id != null)
+            {
+                divisions = divisions.Where(d => d.Id == id);
+            }
+            if (!string.IsNullOrEmpty(name))
+            {
+                divisions = divisions.Where(d => d.Name.StartsWith(name));
+            }
+            if (!string.IsNullOrEmpty(code))
+            {
+                divisions = divisions.Where(d => d.Code.StartsWith(code));
+            }
+            if (companyID != null)
+            {
+                divisions = divisions.Where(d => d.CompanyID == companyID);
+            }
+            if (directorID != null)
+            {
+                divisions = divisions.Where(d => d.DirectorID == directorID);
+            }
+            var divisionList = divisions.ToList();          
+            return DeleteDivision(divisionList.First().Id);
         }
     }
 }

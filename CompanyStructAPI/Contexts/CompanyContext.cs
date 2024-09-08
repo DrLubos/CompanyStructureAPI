@@ -47,7 +47,7 @@ namespace CompanyStructAPI.Contexts
 
         public bool DivisionExists(int id)
         {
-            return Divisions.Any(d => d.id == id);
+            return Divisions.Any(d => d.Id == id);
         }
 
         public bool DivisionParametersExists(string name, string code)
