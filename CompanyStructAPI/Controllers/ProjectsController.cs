@@ -31,6 +31,33 @@ namespace CompanyStructAPI.Controllers
             return Ok(_context.Projects.Find(id));
         }
 
+        [HttpGet("search")]
+        public ActionResult GetProjects([FromQuery] int? id, [FromQuery] string? name, [FromQuery] string? code, [FromQuery] int? divisionId, [FromQuery] int? managerId)
+        {
+            var projects = _context.Projects.AsQueryable();
+            if (id != null)
+            {
+                projects = projects.Where(p => p.Id == id);
+            }
+            if (!string.IsNullOrEmpty(name))
+            {
+                projects = projects.Where(p => p.Name.StartsWith(name));
+            }
+            if (!string.IsNullOrEmpty(code))
+            {
+                projects = projects.Where(p => p.Code.StartsWith(code));
+            }
+            if (divisionId != null)
+            {
+                projects = projects.Where(p => p.DivisionID == divisionId);
+            }
+            if (managerId != null)
+            {
+                projects = projects.Where(p => p.ManagerID == managerId);
+            }
+            return Ok(projects.ToList());
+        }
+
         [TypeFilter(typeof(ProjectCreateValidationFilter))]
         [HttpPost]
         public ActionResult CreateProject([FromBody] Project project)
@@ -54,6 +81,53 @@ namespace CompanyStructAPI.Controllers
             return Ok(project);
         }
 
+        [TypeFilter(typeof(ProjectUpdateValidationFilter))]
+        [HttpPut("search")]
+        public ActionResult SearchAndUpdateProject([FromQuery] int? id, [FromQuery] string? name, [FromQuery] string? code, [FromQuery] int? divisionId, [FromQuery] int? managerId, [FromBody] Project updatedProject)
+        {
+            var projects = _context.Projects.AsQueryable();
+            if (id != null)
+            {
+                projects = projects.Where(p => p.Id == id);
+            }
+            if (!string.IsNullOrEmpty(name))
+            {
+                projects = projects.Where(p => p.Name.StartsWith(name));
+            }
+            if (!string.IsNullOrEmpty(code))
+            {
+                projects = projects.Where(p => p.Code.StartsWith(code));
+            }
+            if (divisionId != null)
+            {
+                projects = projects.Where(p => p.DivisionID == divisionId);
+            }
+            if (managerId != null)
+            {
+                projects = projects.Where(p => p.ManagerID == managerId);
+            }
+            var projectList = projects.ToList();
+            if (projectList.Count > 1)
+            {
+                ModelState.AddModelError("project", "Multiple projects found. Please provide more specific search criteria.");
+                var problemDetails = new ValidationProblemDetails(ModelState)
+                {
+                    Status = StatusCodes.Status400BadRequest
+                };
+                return new BadRequestObjectResult(problemDetails);
+            }
+            if (projectList.Count == 0)
+            {
+                ModelState.AddModelError("project", "Project not found.");
+                var problemDetails = new ValidationProblemDetails(ModelState)
+                {
+                    Status = StatusCodes.Status404NotFound
+                };
+                return new BadRequestObjectResult(problemDetails);
+            }
+            return UpdateProject(projectList.First().Id, updatedProject);
+        }
+
         [TypeFilter(typeof(ProjectIdValidationFilter))]
         [TypeFilter(typeof(ProjectDeleteValidationFilter))]
         [HttpDelete("{id}")]
@@ -63,6 +137,35 @@ namespace CompanyStructAPI.Controllers
             _context.Projects.Remove(project);
             _context.SaveChanges();
             return Ok();
+        }
+
+        [TypeFilter(typeof(ProjectSearchAndDeleteValidationFilter))]
+        [HttpDelete("search")]
+        public ActionResult SearchAndDeleteProject([FromQuery] int? id, [FromQuery] string? name, [FromQuery] string? code, [FromQuery] int? divisionId, [FromQuery] int? managerId)
+        {
+            var projects = _context.Projects.AsQueryable();
+            if (id != null)
+            {
+                projects = projects.Where(p => p.Id == id);
+            }
+            if (!string.IsNullOrEmpty(name))
+            {
+                projects = projects.Where(p => p.Name.StartsWith(name));
+            }
+            if (!string.IsNullOrEmpty(code))
+            {
+                projects = projects.Where(p => p.Code.StartsWith(code));
+            }
+            if (divisionId != null)
+            {
+                projects = projects.Where(p => p.DivisionID == divisionId);
+            }
+            if (managerId != null)
+            {
+                projects = projects.Where(p => p.ManagerID == managerId);
+            }
+            var projectList = projects.ToList();
+            return DeleteProject(projectList.First().Id);
         }
     }
 }
